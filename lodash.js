@@ -119,6 +119,32 @@ function toInteger(value) {
   return result === result ? (remainder ? result - remainder : result) : 0;
 }
 
+/**
+  * Checks if `value` is classified as a `Function` object.
+  *
+  * @static
+  * @memberOf _
+  * @since 0.1.0
+  * @category Lang
+  * @param {*} value The value to check.
+  * @returns {boolean} Returns `true` if `value` is a function, else `false`.
+  * @example
+  *
+  * _.isFunction(_);
+  * // => true
+  *
+  * _.isFunction(/abc/);
+  * // => false
+  */
+function isFunction(value) {
+  if (!isObject(value)) {
+    return false;
+  }
+  // The use of `Object#toString` avoids issues with the `typeof` operator
+  // in Safari 9 which returns 'object' for typed arrays and other constructors.
+  var tag = baseGetTag(value);
+  return tag == funcTag || tag == genTag || tag == asyncTag || tag == proxyTag;
+}
 function isLength(value) {
   return typeof value == 'number' &&
     value > -1 && value % 1 == 0 && value <= MAX_SAFE_INTEGER;
@@ -259,6 +285,82 @@ function concat() {
   }
 
   return arrayPush(isArray(array) ? copyArray(array) : [array], baseFlatten(args, 1));
+}
+
+/**
+  * This method is like `_.isArrayLike` except that it also checks if `value`
+  * is an object.
+  *
+  * @static
+  * @memberOf _
+  * @since 4.0.0
+  * @category Lang
+  * @param {*} value The value to check.
+  * @returns {boolean} Returns `true` if `value` is an array-like object,
+  *  else `false`.
+  * @example
+  *
+  * _.isArrayLikeObject([1, 2, 3]);
+  * // => true
+  *
+  * _.isArrayLikeObject(document.body.children);
+  * // => true
+  *
+  * _.isArrayLikeObject('abc');
+  * // => false
+  *
+  * _.isArrayLikeObject(_.noop);
+  * // => false
+  */
+function isArrayLikeObject(value) {
+  return isObjectLike(value) && isArrayLike(value);
+}
+
+/**
+  * Creates a map cache object to store key-value pairs.
+  *
+  * @private
+  * @constructor
+  * @param {Array} [entries] The key-value pairs to cache.
+  */
+function MapCache(entries) {
+  var index = -1,
+    length = entries == null ? 0 : entries.length;
+
+  this.clear();
+  while(++index < length) {
+    var entry = entries[index];
+    this.set(entry[0], entry[1]);
+  }
+}
+
+/**
+  *
+  * Creates an array cache object to store unique values.
+  *
+  * @private
+  * @constructor
+  * @param {Array} [values] The values to cache.
+  */
+function SetCache(values) {
+  var index = -1,
+    length = values == null ? 0 : values.length;
+
+  this.__data__ = new MapCache;
+  while(++index < length) {
+    this.add(values[index]);
+  }
+}
+/**
+  * Checks if a `cache` value for `key` exists.
+  *
+  * @private
+  * @param {Object} cache The cache to query.
+  * @param {string} key The key of the entry to check.
+  * @returns {boolean} Returns `true` if an entry for `key` exists, else `false`.
+  */
+function cacheHas(cache, key) {
+  return cache.has(key);
 }
 
 /**
